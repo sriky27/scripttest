@@ -5,6 +5,7 @@
 #include <QProcess>
 #include <QFile>
 #include <QTextStream>
+#include <QMap>
 
 ScriptFunctions::ScriptFunctions()
 {
@@ -20,10 +21,17 @@ QStringList ScriptFunctions::readFile(QString aFileName)
         QTextStream stream(&file);
         QString fileContent = stream.readAll();
         QString test = QRegExp::escape(fileContent);
-        fileContent = fileContent.replace(QRegExp("\\s+") , ";");
-        returnValue = fileContent.split(";");
+        QString separator = "::::";
+        fileContent = fileContent.replace(QRegExp("\\n+") , separator);
+        returnValue = fileContent.split(separator);
         // removing empty strings
+        file.close();
     }
+    else
+    {
+        printValue(aFileName + " cannot be opened");
+    }
+
     return returnValue;
 }
 
@@ -43,6 +51,35 @@ QStringList ScriptFunctions::listDirectory(QString aFileName)
         returnList.append(relativeFilePath);
     }
     return returnList;
+}
+
+bool ScriptFunctions::createFile(QString aFileName)
+{
+    bool success = false;
+    QFile file(aFileName);
+    if (file.open(QIODevice::ReadWrite))
+    {
+        success = true;
+        file.close();
+    }
+    return success;
+}
+
+bool ScriptFunctions::appendTextToFile(QString aFileName, QString aText)
+{
+    QFile file(aFileName);
+    if (file.open(QIODevice::Append))
+    {
+        QTextStream stream(&file);
+        stream << aText << "\n";
+    }
+    file.close();
+}
+
+bool ScriptFunctions::removeFile(QString aFileName)
+{
+    QDir dir(".");
+    return dir.remove(aFileName);
 }
 
 QVariant ScriptFunctions::compareArrays(QStringList aArray1, QStringList aArray2)
@@ -94,6 +131,32 @@ bool ScriptFunctions::isReady()
 {
     return true;
 }
+
+QVariant ScriptFunctions::findAndExtract(QString string, QString regExp)
+{
+    QRegExp rx(regExp);
+    int pos = rx.indexIn(string);
+    printValue(QString::number(pos));
+    QStringList list = rx.capturedTexts();
+    printValue(list);
+    QMap<QString, QVariant> map;
+    map["pos"] = QVariant(pos);
+    map["captureList"] = QVariant(list);
+    QVariant returnValue(map);
+    return returnValue;
+}
+
+QStringList ScriptFunctions::removeDuplicates(QStringList array)
+{
+    array.removeDuplicates();
+    return array;
+}
+
+QString ScriptFunctions::join(QStringList aList, QString separator)
+{
+    return aList.join(separator);
+}
+
 
 void ScriptFunctions::printValue(QStringList aMessageList)
 {
