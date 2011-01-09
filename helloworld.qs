@@ -26,13 +26,6 @@ var fileContents = nativeFunctions.readFile(dirFileName);
 var directoryArray3 = nativeFunctions.listDirectory(fileContents[0]);
 //log(directoryArray3);
 
-var randfunctionName1 = "void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) IN\n"
-                       + "void helloworl3d1::myn1ame IN\n"
-                       + "void helloworl3d2::myn1ame IN\n"
-                       + "void helloworl3d2::myn1ame OUT\n"
-                       + "void helloworl3d1::myn1ame OUT\n"
-                       + "void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) IN\n";
-
 var randfunctionNameIn = "IN -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) \n";
 var randfunctionNameOut = "OUT -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) \n";
 var wordBoundary = "\\b";
@@ -47,8 +40,8 @@ var className = functionName;
 
 var start = "(IN\\s?->\\s?)";
 var stop = "(OUT\\s?->\\s?)";
-var regex = "\\b(\\w+)<?(\\w+)?>?\\s+(\\w+)(::)(\\w+)";
 var functionGrep = functionName + scopeOperator + className +  zeroOrMoreCharacters;
+// non-capturing parentheses
 var startFunction = start + zeroOrMoreCharacters + oneOrMoreSpace +functionGrep + wordBoundary + zeroOrMoreSpace;
 log("startFunction: " + startFunction);
 var stopFunction = stop + zeroOrMoreCharacters + oneOrMoreSpace + functionGrep + wordBoundary + zeroOrMoreSpace;
@@ -65,26 +58,26 @@ log("logFile name: " + logFile);
 // read from file
 function readLog() {
     var fileContents = nativeFunctions.readFile(logFile);
-    log("fileContents: " + fileContents);
-    log("fileContents count: " + fileContents.length);
+    //log("fileContents: " + fileContents);
+    //log("fileContents count: " + fileContents.length);
     for(var i = 0; i < fileContents.length; i++) {
         var content = fileContents[i];
-        log("content: " + content);
+
         var result = nativeFunctions.findAndExtract(content, startFunction);
         if(result.pos != -1) {
             //var functionNameIndex = result.captureList.length -1;
             var functionNameIndex = 4;
             var classNameIndex = functionNameIndex - 1;
-
-            collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "->");
+            log("in content: " + content);
+            collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
 
         } else {
             result = nativeFunctions.findAndExtract(content, stopFunction);
             if(result.pos != -1) {
-                var functionNameIndex = result.captureList.length -1;
+                var functionNameIndex = 4;
                 var classNameIndex = functionNameIndex - 1;
-
-                collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "<-");
+                log("out content: " + content);
+                collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
             }
         }
     }
@@ -104,6 +97,7 @@ function readLog() {
 
 function collectObjects(className, functionName, direction) {
     var functionObject = {};
+    log("className: " + className)
     functionObject.className = className;
     functionObject.functionName = functionName;
     functionObject.direction = direction;

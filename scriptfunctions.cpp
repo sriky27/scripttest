@@ -136,7 +136,6 @@ QVariant ScriptFunctions::findAndExtract(QString string, QString regExp)
 {
     QRegExp rx(regExp);
     int pos = rx.indexIn(string);
-    printValue(QString::number(pos));
     QStringList list = rx.capturedTexts();
     printValue(list);
     QMap<QString, QVariant> map;
