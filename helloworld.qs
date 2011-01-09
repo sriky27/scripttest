@@ -38,10 +38,14 @@ var functionName = "(\\w+)";
 var scopeOperator = "::";
 var className = functionName;
 
+
+var functionGrep = className + scopeOperator + functionName +  zeroOrMoreCharacters;
+
+var hypenSeparator = "(-)";
+var functionWithMessage = className + scopeOperator + functionName +  zeroOrMoreCharacters + hypenSeparator + oneOrMoreSpace + zeroOrMoreCharacters + wordBoundary;
+// non-capturing parentheses
 var start = "(IN\\s?->\\s?)";
 var stop = "(OUT\\s?->\\s?)";
-var functionGrep = functionName + scopeOperator + className +  zeroOrMoreCharacters;
-// non-capturing parentheses
 var startFunction = start + zeroOrMoreCharacters + oneOrMoreSpace +functionGrep + wordBoundary + zeroOrMoreSpace;
 log("startFunction: " + startFunction);
 var stopFunction = stop + zeroOrMoreCharacters + oneOrMoreSpace + functionGrep + wordBoundary + zeroOrMoreSpace;
@@ -66,23 +70,35 @@ function readLog() {
         var result = nativeFunctions.findAndExtract(content, startFunction);
         if(result.pos != -1) {
             //var functionNameIndex = result.captureList.length -1;
-            var functionNameIndex = 4;
-            var classNameIndex = functionNameIndex - 1;
-            log("in content: " + content);
+            var functionNameIndex = 4; // fourth subexpression functionName
+            var classNameIndex = functionNameIndex - 1; // third subexpression className
+            //log("in content: " + content);
             collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
 
         } else {
             result = nativeFunctions.findAndExtract(content, stopFunction);
             if(result.pos != -1) {
-                var functionNameIndex = 4;
+                var functionNameIndex = 4; // fourth subexpression functionName
                 var classNameIndex = functionNameIndex - 1;
-                log("out content: " + content);
+                //log("out content: " + content);
                 collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
+            } else {
+                result = nativeFunctions.findAndExtract(content, functionWithMessage);
+                if(result.pos != -1) {
+                    var functionNameIndex = 2;
+                    var classNameIndex = 1;
+                    log("out content: " + content);
+                    log("function grep result:");
+                    log(result.captureList);
+                    var functionNameMessage = result.captureList[functionNameIndex] + result.captureList[result.captureList.length -1];
+                    functionNameMessage = nativeFunctions.replace(functionNameMessage, "\"", "");
+                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>");
+                }
+
             }
         }
     }
     if(functionObjects.length != 0) {
-        log("function")
         var fileName = "first";
         // remove previous file
         nativeFunctions.removeFile(fileName + ".msc");
@@ -137,7 +153,7 @@ function writeDotLangToFile(fileName) {
         var firstObj = functionObjects[i];
         var secondObj = functionObjects[i+1];
         if ( i != (functionObjects.length -1)) {
-        var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i + " : " + secondObj.functionName + "\""+ "];";
+        var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
            log("sequence at " + i + " " + sequence);
            nativeFunctions.appendTextToFile(fileName, sequence);
         }
