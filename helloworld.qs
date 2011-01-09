@@ -53,7 +53,7 @@ log("stopFunction: " + stopFunction);
 nativeFunctions.findAndExtract(randfunctionNameIn, startFunction);
 nativeFunctions.findAndExtract(randfunctionNameOut, stopFunction);
 
-var logFile = "omb_core.log";
+var logFile = "test.log";
 var functionObjects = [];
 readLog();
 
@@ -92,6 +92,9 @@ function readLog() {
                     log(result.captureList);
                     var functionNameMessage = result.captureList[functionNameIndex] + result.captureList[result.captureList.length -1];
                     functionNameMessage = nativeFunctions.replace(functionNameMessage, "\"", "");
+                    log(functionNameMessage);
+                    // lone objects points to itself using the same object twice
+                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>");
                     collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>");
                 }
 
@@ -152,10 +155,20 @@ function writeDotLangToFile(fileName) {
 
         var firstObj = functionObjects[i];
         var secondObj = functionObjects[i+1];
-        if ( i != (functionObjects.length -1)) {
-        var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
+
+        //if ( (i != (functionObjects.length -1)) && firstObj.direction!=undefined) {
+        if ( secondObj!=undefined ) {
+           log("objects which have directions")
+           var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
            log("sequence at " + i + " " + sequence);
            nativeFunctions.appendTextToFile(fileName, sequence);
+        } else {
+            // case for object which doesnot have the direction
+            var secondObj = firstObj;
+            var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
+            nativeFunctions.appendTextToFile(fileName, sequence);
+            // decrementing the count by one as only object is used
+            --i;
         }
     }
     var endTag = "}";
