@@ -1,33 +1,3 @@
-
-var directoryArray = [];
-directoryArray = nativeFunctions.listDirectory(".");
-for(var i = 0; i < directoryArray.length; i++)
-{
-    var evilVar = nativeFunctions.replace(directoryArray[i], "scripttest", "")
-    log(evilVar);
-}
-
-var directoryArray2 = [];
-directoryArray2 = nativeFunctions.listDirectory(".");
-
-var result = compareArray(directoryArray, directoryArray2);
-log("directory compare result: " + result.equal);
-log("printing out found array:");
-log(result.found);
-
-var arguments = ['a' , 'abc.7z'];
-//nativeFunctions.callProcess("7za", arguments);
-
-var dirFileName = "directory_structure.txt";
-var fileContents = nativeFunctions.readFile(dirFileName);
-//log("fileContents of " + dirFileName + "are: ");
-//log(fileContents);
-
-var directoryArray3 = nativeFunctions.listDirectory(fileContents[0]);
-//log(directoryArray3);
-
-var randfunctionNameIn = "IN -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) \n";
-var randfunctionNameOut = "OUT -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) \n";
 var wordBoundary = "\\b";
 var word = "(\\w+)";
 
@@ -50,38 +20,44 @@ var startFunction = start + zeroOrMoreCharacters + oneOrMoreSpace +functionGrep 
 log("startFunction: " + startFunction);
 var stopFunction = stop + zeroOrMoreCharacters + oneOrMoreSpace + functionGrep + wordBoundary + zeroOrMoreSpace;
 log("stopFunction: " + stopFunction);
-nativeFunctions.findAndExtract(randfunctionNameIn, startFunction);
-nativeFunctions.findAndExtract(randfunctionNameOut, stopFunction);
 
 var logFile = "test.log";
 var functionObjects = [];
-readLog();
+var fileName;
+
+createSequenceFromLog(logFile);
+
+function createSequenceFromLog(logFile) {
+    var objects = [];
+    objects = nativeFunctions.split(logFile, "."); // getting the
+    if(objects.length == 2 ) {
+        fileName = objects[0];
+        readLog();
+    } else {
+        log("logFile could not be split, split length expected to be 2");
+    }
+}
 
 
-log("logFile name: " + logFile);
 // read from file
 function readLog() {
     var fileContents = nativeFunctions.readFile(logFile);
-    //log("fileContents: " + fileContents);
-    //log("fileContents count: " + fileContents.length);
     for(var i = 0; i < fileContents.length; i++) {
         var content = fileContents[i];
+        var defaultColor = "black";
 
         var result = nativeFunctions.findAndExtract(content, startFunction);
         if(result.pos != -1) {
-            //var functionNameIndex = result.captureList.length -1;
             var functionNameIndex = 4; // fourth subexpression functionName
             var classNameIndex = functionNameIndex - 1; // third subexpression className
-            //log("in content: " + content);
-            collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
+            collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>", defaultColor);
 
         } else {
             result = nativeFunctions.findAndExtract(content, stopFunction);
             if(result.pos != -1) {
                 var functionNameIndex = 4; // fourth subexpression functionName
                 var classNameIndex = functionNameIndex - 1;
-                //log("out content: " + content);
-                collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>");
+                collectObjects(result.captureList[classNameIndex], result.captureList[functionNameIndex], "=>", defaultColor);
             } else {
                 result = nativeFunctions.findAndExtract(content, functionWithMessage);
                 if(result.pos != -1) {
@@ -94,15 +70,13 @@ function readLog() {
                     functionNameMessage = nativeFunctions.replace(functionNameMessage, "\"", "");
                     log(functionNameMessage);
                     // lone objects points to itself using the same object twice
-                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>");
-                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>");
+                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>", defaultColor);
+                    collectObjects(result.captureList[classNameIndex], functionNameMessage, "=>", defaultColor);
                 }
-
             }
         }
     }
     if(functionObjects.length != 0) {
-        var fileName = "first";
         // remove previous file
         nativeFunctions.removeFile(fileName + ".msc");
         nativeFunctions.removeFile(fileName + ".png");
@@ -114,12 +88,14 @@ function readLog() {
 // put through the parse functions
 // call collectObjects
 
-function collectObjects(className, functionName, direction) {
+function collectObjects(className, functionName, direction, color) {
+
     var functionObject = {};
     log("className: " + className)
     functionObject.className = className;
     functionObject.functionName = functionName;
     functionObject.direction = direction;
+    functionObject.color = color;
     functionObjects.push(functionObject);
 }
 
@@ -150,22 +126,19 @@ function writeDotLangToFile(fileName) {
 
     nativeFunctions.appendTextToFile(fileName, "\n");
     // Create sequences
-    //for(var i = 0; i < functionObjects.length && ( functionObjects.length % 2 == 0 ); i=i+2 ) {
     for(var i = 0; i < functionObjects.length; i=i+2 ) {
 
         var firstObj = functionObjects[i];
         var secondObj = functionObjects[i+1];
 
-        //if ( (i != (functionObjects.length -1)) && firstObj.direction!=undefined) {
         if ( secondObj!=undefined ) {
-           log("objects which have directions")
-           var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
+           var sequence = createSequence(firstObj, secondObj, i);
            log("sequence at " + i + " " + sequence);
            nativeFunctions.appendTextToFile(fileName, sequence);
         } else {
             // case for object which doesnot have the direction
             var secondObj = firstObj;
-            var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ i / 2 + " : " + secondObj.functionName + "\""+ "];";
+            var sequence = createSequence(firstObj, secondObj, i);
             nativeFunctions.appendTextToFile(fileName, sequence);
             // decrementing the count by one as only object is used
             --i;
@@ -173,6 +146,15 @@ function writeDotLangToFile(fileName) {
     }
     var endTag = "}";
     nativeFunctions.appendTextToFile(fileName, endTag);
+}
+
+function createSequence(firstObj, secondObj, sequenceNumber) {
+    var textColor = firstObj.color;
+    var lineColor = firstObj.color;
+    var sequence = firstObj.className + firstObj.direction +  secondObj.className + "[label="+ "\""+ sequenceNumber / 2 + " : "
+                   + secondObj.functionName + "\"," +  "textcolour=\"" + textColor + "\"," +
+                   "linecolour=\""+ lineColor + "\"" + "];";
+    return sequence;
 }
 
 function createPngFromMsc(fileName) {
@@ -183,39 +165,6 @@ function createPngFromMsc(fileName) {
     nativeFunctions.callProcess("mscgen", arguments);
 }
 
-
-function compareArray(array1, array2)
-{
-    var result = {};
-    var found = [];
-    var notfound = [];
-    var equal = false;
-    for (var i = 0; i < array1.length; i++)
-    {
-        var foundItem = false;
-        for (var j = 0; j < array2.length; j++)
-        {
-            if(array1[i] == array2[j])
-            {
-                foundItem = true;
-                found.push(array2[j]);
-                break;
-            }
-        }
-        if ( !foundItem)
-        {
-            notfound.push(array1[i])
-        }
-    }
-
-    if(found.length == array1.length)
-        equal = true;
-
-    result.found = found;
-    result.notfound = notfound;
-    result.equal = equal
-    return result;
-}
 
 
 function log(message)

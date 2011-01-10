@@ -156,6 +156,10 @@ QString ScriptFunctions::join(QStringList aList, QString separator)
     return aList.join(separator);
 }
 
+QStringList ScriptFunctions::split(QString string, QString separator)
+{
+    return string.split(separator);
+}
 
 void ScriptFunctions::printValue(QStringList aMessageList)
 {

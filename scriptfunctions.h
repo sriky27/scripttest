@@ -28,6 +28,7 @@ public slots:
     QVariant findAndExtract(QString string, QString regExp);
     QStringList removeDuplicates(QStringList array);
     QString join(QStringList list, QString separator);
+    QStringList split(QString string, QString separator);
 
     // Calling process
     void callProcess(QString aProcessArg, QStringList aArguments);
