@@ -32,6 +32,7 @@ public slots:
 
     // Calling process
     void callProcess(QString aProcessArg, QStringList aArguments);
+    QString callProcessReadStdOut(QString aProcess, QStringList aArguments);
     bool isReady();
 
     // Debugging functions

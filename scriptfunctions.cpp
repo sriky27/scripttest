@@ -127,6 +127,28 @@ void ScriptFunctions::callProcess(QString aProcess, QStringList aArguments)
     QProcess::startDetached(aProcess, aArguments);
 }
 
+QString ScriptFunctions::callProcessReadStdOut(QString aProcess, QStringList aArguments)
+{
+    QString returnValue = "";
+    QProcess* process = new QProcess(this);
+    process->setReadChannel(QProcess::StandardOutput);
+    process->start(aProcess, aArguments);
+    bool startWait = process->waitForStarted();
+    if(startWait) {
+    bool waitRead = process->waitForReadyRead(1000);
+    printValue("process started");
+    if(waitRead) {
+        printValue("process read ready");
+        returnValue = process->readAllStandardOutput();
+        }
+    }
+
+    process->kill();
+    delete process;
+    return returnValue;
+}
+
+
 bool ScriptFunctions::isReady()
 {
     return true;

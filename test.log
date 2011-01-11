@@ -1,2 +1,2 @@
-IN -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) 
-OUT -> void helloworl3d::myn1ame(const Khan hehe, const aljdf aljf, void* aldsjf, void& alsjdf) 
+IN -> void helloworld::function1(const void* )
+OUT -> void helloworld::function1(const void* )

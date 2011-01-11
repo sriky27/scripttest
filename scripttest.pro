@@ -22,6 +22,8 @@ HEADERS += \
     scriptfunctions.h
 
 OTHER_FILES += \
-    helloworld.qs
+    load.qs \
+    logtosequence.qs \
+    sequencediff.qs
 
 DESTDIR = $$PWD
