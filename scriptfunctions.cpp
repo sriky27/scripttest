@@ -21,10 +21,11 @@ QStringList ScriptFunctions::readFile(QString aFileName)
     {
         QTextStream stream(&file);
         QString fileContent = stream.readAll();
-        QString test = QRegExp::escape(fileContent);
-        QString separator = "::::";
-        fileContent = fileContent.replace(QRegExp("\\n+") , separator);
-        returnValue = fileContent.split(separator);
+        //QString test = QRegExp::escape(fileContent);
+        //QString separator = "::::";
+        //fileContent = fileContent.replace(QRegExp("\\n+") , separator);
+        //returnValue = fileContent.split(separator);
+        returnValue = removeNewLine(fileContent);
         // removing empty strings
         file.close();
     }
@@ -111,7 +112,7 @@ QVariant ScriptFunctions::compareArrays(QStringList aArray1, QStringList aArray2
 
 QString ScriptFunctions::replace(QString actual, QString lookFor, QString replaceWith)
 {
-    QString returnValue = actual.replace(lookFor, replaceWith);
+    QString returnValue = actual.replace(QRegExp(lookFor), replaceWith);
     return returnValue;
 }
 
@@ -130,18 +131,16 @@ void ScriptFunctions::callProcess(QString aProcess, QStringList aArguments)
 
 QString ScriptFunctions::callProcessReadStdOut(QString aProcess, QStringList aArguments)
 {
+    // complete synchronous -- TODO: to make asynchronous
     QString returnValue = "";
-
     QScopedPointer<QProcess> process(new QProcess(this));
     process->setProcessChannelMode(QProcess::MergedChannels);
     process->setReadChannel(QProcess::StandardOutput);
     process->start(aProcess, aArguments);
     bool startWait = process->waitForStarted();
     if(startWait) {
-    bool waitRead = process->waitForReadyRead(1000);
-    printValue("process started");
+    bool waitRead = process->waitForReadyRead();
     if(waitRead) {
-        printValue("process read ready");
         returnValue = process->readAllStandardOutput();
         }
     }
@@ -182,6 +181,15 @@ QString ScriptFunctions::join(QStringList aList, QString separator)
 QStringList ScriptFunctions::split(QString string, QString separator)
 {
     return string.split(separator);
+}
+
+QStringList ScriptFunctions::removeNewLine(QString actual)
+{
+    QStringList returnValue;
+    QString separator = "::::";
+    actual = actual.replace(QRegExp("\\n+") , separator);
+    returnValue = actual.split(separator);
+    return returnValue;
 }
 
 void ScriptFunctions::printValue(QStringList aMessageList)

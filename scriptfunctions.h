@@ -29,6 +29,7 @@ public slots:
     QStringList removeDuplicates(QStringList array);
     QString join(QStringList list, QString separator);
     QStringList split(QString string, QString separator);
+    QStringList removeNewLine(QString actual);
 
     // Calling process
     void callProcess(QString aProcessArg, QStringList aArguments);
