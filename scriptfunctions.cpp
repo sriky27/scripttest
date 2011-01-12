@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QMap>
+#include <QScopedPointer>
 
 ScriptFunctions::ScriptFunctions()
 {
@@ -130,7 +131,9 @@ void ScriptFunctions::callProcess(QString aProcess, QStringList aArguments)
 QString ScriptFunctions::callProcessReadStdOut(QString aProcess, QStringList aArguments)
 {
     QString returnValue = "";
-    QProcess* process = new QProcess(this);
+
+    QScopedPointer<QProcess> process(new QProcess(this));
+    process->setProcessChannelMode(QProcess::MergedChannels);
     process->setReadChannel(QProcess::StandardOutput);
     process->start(aProcess, aArguments);
     bool startWait = process->waitForStarted();
@@ -142,9 +145,7 @@ QString ScriptFunctions::callProcessReadStdOut(QString aProcess, QStringList aAr
         returnValue = process->readAllStandardOutput();
         }
     }
-
-    process->kill();
-    delete process;
+    process->waitForFinished();
     return returnValue;
 }
 
