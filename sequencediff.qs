@@ -96,8 +96,13 @@ return resultObject;
 
 function splitAppend(inputArray, outputArray) {
     inputArray = nativeFunctions.split(inputArray, ",");
-    for(var i = 0; i < inputArray.length; i++)
-        outputArray.push(inputArray[i]);
+    log("inputArray length:" + inputArray.length);
+    for(var i = parseInt(inputArray[0]); i <= parseInt(inputArray[inputArray.length - 1]); i++)
+        outputArray.push(i);
+
+    log("outputArray length:" + outputArray.length);
+    log(inputArray);
+
 }
 
 function changeColorInSequenceUsingDiff(linesDiffInSequence, fileName) {
@@ -124,18 +129,15 @@ function chaneColorInSequence(sequences, diffArray, color) {
     var defaultColor = "(black)";
 
     log("diffArray length:" + diffArray.length);
-    if(diffArray.length == 2) {
-        log(diffArray);
-        var i = 0;
+    log(diffArray);
+    var i = 0;
+    log(i);
+    for(var i = 0; i < diffArray.length; i++) {
         log(i);
-        for(var i = parseInt(diffArray[0]); i < parseInt(diffArray[1]); i++) {
-            log(i);
-            log("before change " + sequences[i]);
-            sequences[i] = nativeFunctions.replace(sequences[i], defaultColor,color);
-            log("after change " + sequences[i]);
-        }
-    } else {
-        nativeFunctions.replace(sequences[parseInt(diffArray[0])], defaultColor,color);
+        var index = diffArray[i];
+        log("before change " + sequences[index]);
+        sequences[index] = nativeFunctions.replace(sequences[index], defaultColor,color);
+        log("after change " + sequences[index]);
     }
 }
 
