@@ -17,7 +17,8 @@ var arguments1 = [  returnValue2.sequenceFile, returnValue1.sequenceFile];
 var resultDiff = nativeFunctions.callProcessReadStdOut('diff', arguments1);
 log(resultDiff);
 var linesDiffInSequence = getDiffInSequences(resultDiff);
-changeColorInSequenceUsingDiff(linesDiffInSequence);
+changeColorInSequenceUsingDiff(linesDiffInSequence.left, returnValue2.sequenceFile);
+changeColorInSequenceUsingDiff(linesDiffInSequence.right, returnValue1.sequenceFile);
 }
 // get the line numbers from the output
 // 4c4 means on line 4 change is there on both sides
@@ -103,9 +104,39 @@ function changeColorInSequenceUsingDiff(linesDiffInSequence, fileName) {
     var textColorRegEx = "textcolour=\"" + zeroOrMoreCharacters + "\"";
     var lineColorRegEx = "linecolour=\"" + zeroOrMoreCharacters + "\"";
     var redColor = "red";
+    var blueColor = "blue";
     var fileContents = nativeFunctions.readFile(fileName);
+    chaneColorInSequence(fileContents, linesDiffInSequence.changedLines, redColor);
+    chaneColorInSequence(fileContents, linesDiffInSequence.appendedLines, blueColor);
+
     // write filecontents to the file
+    // evil
+    var outPutFileName = getBaseFileName(fileName) + "-diff";
+    // write filecontents to the file
+    var outPutMsc = outPutFileName + ".msc";
+    nativeFunctions.removeFile(outPutMsc);
+    nativeFunctions.appendTextToFile(outPutMsc, fileContents);
     // create png out of it
+    createPngFromMsc(outPutFileName);
+}
+
+function chaneColorInSequence(sequences, diffArray, color) {
+    var defaultColor = "(black)";
+
+    log("diffArray length:" + diffArray.length);
+    if(diffArray.length == 2) {
+        log(diffArray);
+        var i = 0;
+        log(i);
+        for(var i = parseInt(diffArray[0]); i < parseInt(diffArray[1]); i++) {
+            log(i);
+            log("before change " + sequences[i]);
+            sequences[i] = nativeFunctions.replace(sequences[i], defaultColor,color);
+            log("after change " + sequences[i]);
+        }
+    } else {
+        nativeFunctions.replace(sequences[parseInt(diffArray[0])], defaultColor,color);
+    }
 }
 
 // get those lines grep for textcolor and linecolor and change to desired color.

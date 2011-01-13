@@ -78,6 +78,19 @@ bool ScriptFunctions::appendTextToFile(QString aFileName, QString aText)
     file.close();
 }
 
+bool ScriptFunctions::appendTextToFile(QString aFileName, QStringList aTextList)
+{
+    QFile file(aFileName);
+    if (file.open(QIODevice::Append))
+    {
+        QTextStream stream(&file);
+        for(int i=0; i < aTextList.count(); i++) {
+            stream << aTextList[i] << "\n";
+        }
+    }
+    file.close();
+}
+
 bool ScriptFunctions::removeFile(QString aFileName)
 {
     QDir dir(".");

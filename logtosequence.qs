@@ -25,15 +25,23 @@ log("stopFunction: " + stopFunction);
 function createSequenceFromLog(logFile) {
     var result = {};
     result.success = false;
+    var fileName = getBaseFileName(logFile)
+    if(fileName != undefined) {
+    result = sequenceExtractor(logFile, fileName);
+    }
+    return result;
+}
+
+function getBaseFileName(fileName) {
+    var returnObject;
     var objects = [];
-    objects = nativeFunctions.split(logFile, "."); // getting the
+    objects = nativeFunctions.split(fileName, "."); // getting the
     if(objects.length == 2 ) {
-        fileName = objects[0];
-        result = sequenceExtractor(logFile, fileName);
+        returnObject = objects[0];
     } else {
         log("logFile could not be split, split length expected to be 2");
     }
-    return result;
+    return returnObject;
 }
 
 
@@ -80,11 +88,11 @@ function sequenceExtractor(logFile, outputFileName) {
     if(functionObjects.length != 0) {
         // remove previous file
         var sequenceFile = outputFileName + ".msc";
-        var sequencePng = outputFileName + ".msc";
+        var sequencePng = outputFileName + ".png";
         nativeFunctions.removeFile(sequenceFile);
         nativeFunctions.removeFile(sequencePng);
-        writeMscLangToFile(functionObjects, fileName);
-        createPngFromMsc(fileName);
+        writeMscLangToFile(functionObjects, outputFileName);
+        createPngFromMsc(outputFileName);
         resultObject.sequenceFile = sequenceFile;
         resultObject.sequencePng = sequencePng;
         resultObject.success = true;
@@ -124,7 +132,7 @@ function writeMscLangToFile(functionObjects, fileName) {
         classNames.push(functionObjects[i].className);
     }
 
-    nativeFunctions.appendTextToFile(fileName, "\n");
+    //nativeFunctions.appendTextToFile(fileName, "\n");
 
     // remove duplicates
     classNames = nativeFunctions.removeDuplicates(classNames);
@@ -133,7 +141,7 @@ function writeMscLangToFile(functionObjects, fileName) {
 
     nativeFunctions.appendTextToFile(fileName, joinedClassname);
 
-    nativeFunctions.appendTextToFile(fileName, "\n");
+    //nativeFunctions.appendTextToFile(fileName, "\n");
     // Create sequences
     for(var i = 0; i < functionObjects.length; i=i+2 ) {
 
@@ -169,6 +177,8 @@ function createSequence(firstObj, secondObj, sequenceNumber) {
 function createPngFromMsc(fileName) {
     var inputFile = fileName + ".msc";
     var outputFile = fileName + ".png";
+    nativeFunctions.removeFile(outputFile);
+
     var arguments = ['-T' , 'png' , '-o' , outputFile , '-i' , inputFile];
     log(arguments);
     nativeFunctions.callProcess("mscgen", arguments);

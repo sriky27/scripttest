@@ -19,6 +19,7 @@ public slots:
     QStringList listDirectory(QString aFileName);
     bool createFile(QString aFileName);
     bool appendTextToFile(QString aFileName, QString aText);
+    bool appendTextToFile(QString aFileName, QStringList aTextList);
     bool removeFile(QString aFileName);
 
     // Handy String related functions
